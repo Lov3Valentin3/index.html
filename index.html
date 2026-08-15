@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>North Pole Pen Pal | Magical Elf Friend</title>
+    
+    <!-- SEO & Metadata -->
+    <meta name="description" content="Build a magical friendship with an Elf from the North Pole. Safe, AI-powered instant messaging for kids.">
+    <meta name="keywords" content="Elf Pen Pal, Letters from the North Pole, Santa Letters, Christmas App for Kids, Elf Friend">
+    <meta property="og:title" content="My Magical Elf Pen Pal">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/0f172a/fbbf24?text=North+Pen+Pal">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-deep: #0f172a;
+            --bg-purple: #2e1065;
+            --primary-green: #10b981; /* Bright Emerald */
+            --primary-red: #dc2626;   /* Deep Red */
+            --accent-gold: #fbbf24;
+            --text-light: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, var(--bg-deep), var(--bg-purple));
+            color: var(--text-light);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        h1, h2, h3 { font-family: 'Mountains of Christmas', cursive; letter-spacing: 1px; }
+
+        /* --- Snow Animation --- */
+        .snow-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .snowflake {
+            position: absolute; top: -10px; color: white; font-size: 1em;
+            animation: fall linear infinite; opacity: 0.8;
+        }
+        @keyframes fall { to { transform: translateY(105vh); } }
+
+        /* --- Layout & Navigation --- */
+        #app {
+            position: relative; z-index: 10;
+            height: 100%; width: 100%;
+            display: flex; flex-direction: column;
+        }
+
+        .screen {
+            display: none; flex-direction: column;
+            height: 100%; padding: 20px;
+            overflow-y: auto;
+            animation: fadeIn 0.5s ease;
+        }
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Components --- */
+        .btn {
+            background: linear-gradient(45deg, var(--primary-red), #b91c1c);
+            border: 2px solid var(--accent-gold);
+            color: white; padding: 15px 30px;
+            border-radius: 50px; font-weight: bold;
+            font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+            transition: transform 0.2s; text-align: center;
+            margin: 10px 0; width: 100%;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-secondary { background: var(--primary-green); border-color: #34d399; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+        .btn-gold { background: var(--accent-gold); color: var(--bg-deep); border: none; }
+
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; color: var(--accent-gold); font-weight: bold; }
+        input, select, textarea {
+            width: 100%; padding: 12px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 12px; color: white; font-size: 1rem;
+        }
+        input:focus { outline: 2px solid var(--primary-green); }
+
+        /* --- Landing Page --- */
+        .hero-title {
+            text-align: center; margin-top: 40px; margin-bottom: 20px;
+            font-size: 3rem; color: var(--accent-gold);
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+        .landing-options { display: grid; gap: 15px; margin-top: auto; margin-bottom: 40px; }
+
+        /* --- Elf Selection --- */
+        .elf-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+            margin-top: 20px;
+        }
+        .elf-card {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 15px; padding: 15px; text-align: center;
+            cursor: pointer; transition: 0.3s;
+        }
+        .elf-card.selected { border: 2px solid var(--accent-gold); background: rgba(251, 191, 36, 0.1); }
+        .elf-avatar { width: 80px; height: 80px; border-radius: 50%; background: #ddd; margin: 0 auto 10px; object-fit: cover; border: 3px solid var(--primary-green); }
+        
+        /* --- Dashboard & Chat --- */
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 15px;
+        }
+        .countdown-badge {
+            background: var(--primary-red); padding: 5px 10px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 10px;
+        }
+        
+        .chat-container {
+            flex: 1; overflow-y: auto; padding-bottom: 80px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .message {
+            max-width: 80%; padding: 12px 16px; border-radius: 18px;
+            font-size: 0.95rem; line-height: 1.4; position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .msg-elf {
+            align-self: flex-start; background: var(--glass);
+            border-bottom-left-radius: 4px; border: 1px solid var(--glass-border);
+        }
+        .msg-kid {
+            align-self: flex-end; background: var(--primary-green);
+            border-bottom-right-radius: 4px; color: #064e3b; font-weight: bold;
+        }
+        .msg-time { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+
+        .chat-input-area {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            padding: 15px; border-top: 1px solid var(--glass-border);
+            display: flex; gap: 10px; align-items: center;
+        }
+
+        /* --- Parent Dashboard --- */
+        .parent-card {
+            background: var(--glass); padding: 20px; border-radius: 15px;
+            margin-bottom: 15px; border-left: 5px solid var(--primary-green);
+        }
+        .toggle-switch {
+            position: relative; display: inline-block; width: 50px; height: 24px; float: right;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px;
+            left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-green); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .center-text { text-align: center; }
+        .gold-text { color: var(--accent-gold); }
+        
+        /* Typing Indicator */
+        .typing { font-style: italic; color: var(--accent-gold); font-size: 0.8rem; margin-left: 10px; display: none; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Snow Effect Container -->
+    <div class="snow-container" id="snowContainer"></div>
+
+    <div id="app">
+        
+        <!-- 1. LANDING PAGE -->
+        <section id="landing" class="screen active">
+            <h1 class="hero-title">North Pole<br>Pen Pals</h1>
+            <p class="center-text" style="margin-bottom: 30px; opacity: 0.9;">Make a magical friend this Christmas!</p>
+            
+            <div class="landing-options">
+                <button class="btn" onclick="navTo('kid-register')"><i class="fas fa-child"></i> Kid Register</button>
+                <button class="btn btn-secondary" onclick="navTo('kid-login')"><i class="fas fa-sign-in-alt"></i> Kid Login</button>
+                <div style="height: 20px;"></div>
+                <button class="btn btn-gold" onclick="navTo('parent-login')" style="font-size: 0.9rem;"><i class="fas fa-lock"></i> Parent Area</button>
+            </div>
+        </section>
+
+        <!-- 2. KID REGISTRATION -->
+        <section id="kid-register" class="screen">
+            <h2 class="center-text gold-text">Join the Workshop</h2>
+            <form id="regForm" onsubmit="handleRegister(event)">
+                <div class="input-group">
+                    <label>Your Name</label>
+                    <input type="text" id="childName" required placeholder="e.g. Timmy">
+                </div>
+                <div class="input-group">
+                    <label>Age</label>
+                    <input type="number" id="childAge" min="3" max="12" required>
+                </div>
+                <div class="input-group">
+                    <label>Favorite Color</label>
+                    <select id="childColor">
+                        <option>Red</option><option>Green</option><option>Blue</option><option>Gold</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Favorite Christmas Activity</label>
+                    <input type="text" id="childActivity" placeholder="e.g. Building snowmen">
+                </div>
+                
+                <h3 class="center-text" style="margin: 20px 0;">Choose Your Elf Friend</h3>
+                <div class="elf-grid" id="elfSelectionGrid">
+                    <!-- Elves injected via JS -->
+                </div>
+                <input type="hidden" id="selectedElfId" required>
+                
+                <button type="submit" class="btn" style="margin-top: 20px;">Start Magic!</button>
+                <button type="button" class="btn btn-secondary" onclick="navTo('landing')">Back</button>
+            </form>
+        </section>
+
+        <!-- 3. KID DASHBOARD (CHAT) -->
+        <section id="kid-dashboard" class="screen">
+            <div class="header-bar">
+                <div>
+                    <span class="countdown-badge" id="countdownTimer">Loading...</span>
+                    <h3 style="color: var(--accent-gold);" id="dashboardGreeting">Hi!</h3>
+                </div>
+                <button class="btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8rem;" onclick="logout()">Exit</button>
+            </div>
+
+            <div class="daily-inspiration" style="text-align: center; margin-bottom: 10px; font-style: italic; color: #cbd5e1; font-size: 0.9rem;">
+                "<span id="dailyQuote">Kindness is Christmas magic.</span>"
+            </div>
+
+            <div class="chat-container" id="chatHistory">
+                <!-- Messages go here -->
+            </div>
+            <div class="typing" id="typingIndicator">Elf is writing... <i class="fas fa-pen-fancy"></i></div>
+
+            <div class="chat-input-area">
+                <input type="text" id="messageInput" placeholder="Type a letter to your elf..." autocomplete="off">
+                <button class="btn btn-secondary" style="width: auto; margin: 0; padding: 10px 20px;" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 4. PARENT LOGIN -->
+        <section id="parent-login" class="screen">
+            <h2 class="center-text gold-text">Parent Control Center</h2>
+            <p class="center-text" style="margin-bottom: 20px;">Manage safety and subscriptions.</p>
+            <form onsubmit="handleParentLogin(event)">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" value="parent@example.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" value="password" required>
+                </div>
+                <button type="submit" class="btn btn-gold">Secure Login</button>
+                <button type="button" class="btn btn-secondary" onclick="navTo('landing')">Back</button>
+            </form>
+        </section>
+
+        <!-- 5. PARENT DASHBOARD -->
+        <section id="parent-dashboard" class="screen">
+            <div class="header-bar">
+                <h3>Parent Dashboard</h3>
+                <button class="btn-secondary" style="width: auto; padding: 5px 15px;" onclick="logout()">Logout</button>
+            </div>
+
+            <div class="parent-card">
+                <h4><i class="fas fa-shield-alt"></i> Safety Controls</h4>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Filter Bad Words</span>
+                    <label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Limit Screen Time</span>
+                    <label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="parent-card">
+                <h4><i class="fas fa-crown"></i> Subscription</h4>
+                <p>Plan: <strong>Unlimited Magic (Monthly)</strong></p>
+                <button class="btn btn-secondary" style="margin-top: 10px; font-size: 0.9rem;">Update Payment</button>
+            </div>
+
+            <div class="parent-card">
+                <h4><i class="fas fa-share-alt"></i> Share the Magic</h4>
+                <p>Post to social media:</p>
+                <button class="btn btn-gold" style="margin-top: 10px;" onclick="alert('Generating festive image... Posted!')">
+                    <i class="fab fa-facebook"></i> Share
+                </button>
+            </div>
+            
+            <div class="parent-card">
+                <h4>Message History Review</h4>
+                <p style="font-size: 0.8rem; color: #aaa;">Last message reviewed: 2 mins ago. All clear.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        const elves = [
+            { id: 1, name: "Jingle", gender: "Boy", job: "Toy Maker", hobby: "Sledding", trait: "Funny", color: "#ef4444" },
+            { id: 2, name: "Holly", gender: "Girl", job: "Reindeer Feeder", hobby: "Baking", trait: "Sweet", color: "#10b981" },
+            { id: 3, name: "Sparky", gender: "Boy", job: "Light Technician", hobby: "Dancing", trait: "Energetic", color: "#fbbf24" },
+            { id: 4, name: "Frosty", gender: "Boy", job: "Snow Sculptor", hobby: "Ice Skating", trait: "Cool", color: "#3b82f6" },
+            { id: 5, name: "Candy", gender: "Girl", job: "Taste Tester", hobby: "Singing", trait: "Cheerful", color: "#ec4899" },
+            // ... Imagine 15 more unique elves here
+        ];
+
+        let currentUser = null;
+        let currentElf = null;
+        let messageHistory = [];
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            createSnow();
+            renderElfGrid();
+            startCountdown();
+            loadDailyQuote();
+        };
+
+        function createSnow() {
+            const container = document.getElementById('snowContainer');
+            for(let i=0; i<50; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.innerHTML = '❄';
+                flake.style.left = Math.random() * 100 + 'vw';
+                flake.style.animationDuration = Math.random() * 3 + 2 + 's';
+                flake.style.opacity = Math.random();
+                flake.style.fontSize = Math.random() * 10 + 10 + 'px';
+                container.appendChild(flake);
+            }
+        }
+
+        function renderElfGrid() {
+            const grid = document.getElementById('elfSelectionGrid');
+            elves.forEach(elf => {
+                const card = document.createElement('div');
+                card.className = 'elf-card';
+                card.onclick = () => selectElf(elf.id, card);
+                card.innerHTML = `
+                    <div class="elf-avatar" style="background-color: ${elf.color}20; display:flex; align-items:center; justify-content:center; font-size:2rem;">
+                        ${elf.gender === 'Boy' ? '🧝‍♂️' : '🧝‍♀️'}
+                    </div>
+                    <h4>${elf.name}</h4>
+                    <p style="font-size:0.8rem">${elf.job}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectElf(id, element) {
+            document.querySelectorAll('.elf-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('selectedElfId').value = id;
+            currentElf = elves.find(e => e.id === id);
+        }
+
+        // --- NAVIGATION ---
+        function navTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if(screenId === 'kid-dashboard' && currentUser) {
+                setupDashboard();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            currentElf = null;
+            navTo('landing');
+        }
+
+        // --- AUTH & REGISTRATION ---
+        function handleRegister(e) {
+            e.preventDefault();
+            const elfId = parseInt(document.getElementById('selectedElfId').value);
+            if(!elfId) { alert("Please choose an Elf friend!"); return; }
+
+            currentUser = {
+                name: document.getElementById('childName').value,
+                age: document.getElementById('childAge').value,
+                elf: elves.find(e => e.id === elfId)
+            };
+            
+            // Simulate API Save
+            console.log("User Registered:", currentUser);
+            
+            // Welcome Message from Elf
+            addMessage(`elf`, `Ho ho ho! Hi ${currentUser.name}! I'm ${currentUser.elf.name}. I heard you like ${document.getElementById('childActivity').value}. That's awesome! What do you want to talk about?`, true);
+            
+            navTo('kid-dashboard');
+        }
+
+        function handleParentLogin(e) {
+            e.preventDefault();
+            // Simulate Auth
+            navTo('parent-dashboard');
+        }
+
+        // --- CHAT LOGIC (The "AI") ---
+        function setupDashboard() {
+            document.getElementById('dashboardGreeting').innerText = `Chatting with ${currentUser.elf.name}`;
+            document.getElementById('chatHistory').innerHTML = ''; // Clear visual, keep logic array
+            
+            // Load history (simulated)
+            messageHistory.forEach(msg => renderMessageBubble(msg));
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            // Add User Message
+            addMessage('kid', text);
+            input.value = '';
+
+            // Simulate Elf Thinking/Typing
+            const indicator = document.getElementById('typingIndicator');
+            indicator.style.display = 'block';
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+                generateElfResponse(text);
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function addMessage(sender, text, isFirst = false) {
+            const msgObj = { sender, text, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+            messageHistory.push(msgObj);
+            renderMessageBubble(msgObj, isFirst);
+        }
+
+        function renderMessageBubble(msg, scroll = true) {
+            const container = document.getElementById('chatHistory');
+            const div = document.createElement('div');
+            div.className = `message ${msg.sender === 'elf' ? 'msg-elf' : 'msg-kid'}`;
+            div.innerHTML = `${msg.text} <span class="msg-time">${msg.time}</span>`;
+            container.appendChild(div);
+            if(scroll) container.scrollTop = container.scrollHeight;
+        }
+
+        // Simple Rule-Based AI Simulation
+        function generateElfResponse(input) {
+            const lowerInput = input.toLowerCase();
+            const name = currentUser.name;
+            const elfName = currentUser.elf.name;
+            let response = "";
+
+            if(lowerInput.includes("hello") || lowerInput.includes("hi")) {
+                response = `Hello ${name}! It's so snowy here today. How are you?`;
+            } else if(lowerInput.includes("santa")) {
+                response = `Santa is checking his list twice! He's very busy preparing the sleigh.`;
+            } else if(lowerInput.includes("present") || lowerInput.includes("gift") || lowerInput.includes("want")) {
+                response = `Ooh, telling me your wishes? I'll make sure to whisper them to Santa tonight! 🤫`;
+            } else if(lowerInput.includes("cookie") || lowerInput.includes("food")) {
+                response = `Yum! I just had a gingerbread cookie. Do you like baking too?`;
+            } else if(lowerInput.includes("sad") || lowerInput.includes("bad")) {
+                response = `Oh no, ${name}. Sending you a big virtual hug! 🤗 Remember, kindness is magic.`;
+            } else {
+                const randomResponses = [
+                    `That's wonderful, ${name}! Tell me more!`,
+                    `Wow! We don't see that at the North Pole often.`,
+                    `I was just thinking about ${currentUser.elf.hobby.toLowerCase()}. Do you like doing that?`,
+                    `Magic is in the air! ✨ What else is new?`
+                ];
+                response = randomResponses[Math.floor(Math.random() * randomResponses.length)];
+            }
+
+            addMessage('elf', response);
+        }
+
+        // --- UTILS ---
+        function startCountdown() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            let xmas = new Date(currentYear, 11, 25);
+            if (now > xmas) xmas = new Date(currentYear + 1, 11, 25);
+
+            setInterval(() => {
+                const diff = xmas - new Date();
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('countdownTimer').innerText = `${d}d ${h}h until Christmas`;
+            }, 60000); // Update every minute
+            document.getElementById('countdownTimer').innerText = "Calculating...";
+        }
+
+        function loadDailyQuote() {
+            const quotes = [
+                "Kindness is Christmas magic.",
+                "Believe in the impossible.",
+                "Every act of kindness helps Santa.",
+                "The best way to spread Christmas cheer is singing loud for all to hear."
+            ];
+            document.getElementById('dailyQuote').innerText = quotes[Math.floor(Math.random() * quotes.length)];
+        }
+    </script>
+</body>
+</html>
